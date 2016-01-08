@@ -1,0 +1,76 @@
+#searchField{
+    background-color: lightblue;
+    color: white;
+    width: 400px;
+}
+
+#wordList{
+    visibility: hidden;
+    width: 405px;
+    
+}
+
+#addword{
+    visibility: hidden;
+}
+
+
+div#wordData{
+    padding: 10px;
+    background-color: aquamarine;
+    overflow: auto;
+    visibility: hidden;
+}
+
+div#wordHeader{
+    padding: 10px;
+    background-color: royalblue;
+    overflow: auto;
+}
+
+div#wordDefinitions{
+    padding: 10px;
+    background-color: brown;
+}
+
+div#wordDiv{
+    background-color: antiquewhite;
+    float: left;
+    margin: 6px;
+}
+
+div#spellingDiv{
+    background-color: bisque;
+    float: left;
+    margin: 6px;
+}
+
+div#wordIdDiv{
+    background-color: chartreuse;
+    float: left;
+    margin: 6px;
+}
+
+div#messages{
+    background-color: red;
+}
+
+div#wordcounts{
+    display:none;
+}
+
+div#wordDefinition{
+    width 80%;
+    
+    
+}
+
+div.definition{
+    background-color: white;
+    border: 5px solid orange;
+}
+
+div.defDelete{
+    color:red;
+    
+}

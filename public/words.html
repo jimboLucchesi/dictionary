@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>RESTful Words Client</title>
+    <script src="javascripts/wordsclient.js"></script>
+    <link rel="stylesheet" href="stylesheets/meyer_reset.css"></link>
+    <link rel="stylesheet" href="stylesheets/words.css"></link>
+
+</head>
+
+<body>
+    <div id="wordcounts">
+        <h4>Count:</h4>
+        <input name="countWord" id="countWord">
+        <ul id="displayCount"></ul>
+    </div>
+    </p>
+<div id="messages">
+
+</div>
+    <div id="search">
+        <h4>Search:</h4>
+        <input type="test" name="searchField" id="searchField" />
+        <button id="addword" disabled>Add</button>
+        <br/>
+        <select id="wordList" size=10></select>
+    </div>
+    <div id="wordData">
+        <div id="wordHeader">
+            <div id="wordDiv">
+                <h1 id="theWord">xxx</h1>
+                <button id="deleteWord" name="deleteWord">Delete</button>
+            </div>
+
+            <div id="spellingDiv">
+                <h5>Change Spelling</h5>
+                <input type="text" id="changeSpellingField">
+                <button id="changeSpellingButton">Change</button>
+            </div>
+
+            <div id="wordIdDiv">ID: <span id="wordID">xxxx</span>
+            </div>
+
+        </div>
+        <div id="wordDefinitions">Definitions
+            <textarea rows="4" cols="50" id="newDefinition"> </textarea>
+            <button id="addUpdate"><h5>Add/Update</h5></button>
+            <div id="definitionList">
+            </div>
+            <!--<button id="updateDefinition"><h5>Update Definition</h5></button> -->
+        </div>
+    </div>
+</body>
+
+</html>
