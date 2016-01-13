@@ -4,6 +4,12 @@
     width: 400px;
 }
 
+ol#twitterList{
+    /*list-style: decimal;*/
+    list-style-type: decimal;
+}
+
+
 #wordList{
     visibility: hidden;
     width: 405px;
@@ -60,8 +66,7 @@ div#wordcounts{
 }
 
 div#wordDefinition{
-    width 80%;
-    
+    width 48%;
     
 }
 
@@ -72,5 +77,16 @@ div.definition{
 
 div.defDelete{
     color:red;
+    float: left;
     
+}
+
+div.defUpdate{
+    background-color: greenyellow;
+}
+
+div.twitterDiv{
+    background-color: lightblue;
+    float: right;
+    width: 48%;
 }

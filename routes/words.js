@@ -1,8 +1,21 @@
 var express = require('express');
 var router = express.Router();
-var sqlite3 = require('sqlite3');
+var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('databases/words.sqlite');
 db.run("PRAGMA case_sensitive_lie = true");
+
+var Twitter = require('twitter');
+var twitParams = {
+    screen_name: 'jimbolucchesi84'
+}
+
+var twitClient = new Twitter({
+    consumer_key: 'gIuwHj1mgEVOBr307jNxCIWJN',
+    consumer_secret: 'fYpKlE4QR4fM1wT7pu1efkMRuBfZGcGKQgYaEmc59S5i6pMmSi',
+    access_token_key: '4753962852-D6rFhsiceo41epNZptnMC31t6cOscOAl2zXjx01',
+    access_token_secret: 'j1uVRJhvER6CJqTlr32moNoYx9LBZAQQJX45NBU9FIPy1'
+})
+
 router.get('/', function (req, res, next) {
     var count = 0;
     db.get("SELECT COUNT(*) AS tot FROM words", function (err, row) {
@@ -56,7 +69,9 @@ router.get("/dictionary/:wordId", function (req, res, next) {
             res.status(500).send("Database Error")
         } else {
             if (data.length > 0) {
-                res.status(200).json(data)
+                res.wordData = data;
+                //res.status(200).json(data)///for twitter replace with next();
+                next();
             } else {
                 res.status(404).send("Word Id not found: " + wordId)
             }
@@ -113,9 +128,12 @@ router.put("/dictionary/:wordId", function (req, res, next) {
 
 router.delete("/dictionary/:wordId", function (req, res, next) {
     wordId = req.params.wordId
-    var query = "DELETE FROM words WHERE id = " + wordId
-    db.run(query, function (err) {
+    var query = "DELETE FROM words WHERE id = ?"
+    console.log(query)
+    db.run(query, [wordId], function (err) {
+        console.log("Running query....")
         if (err) {
+            console.log(err)
             res.status(500).send("Database Error")
         } else {
             if (this.changes > 0) {
@@ -183,6 +201,54 @@ router.delete("/dictionary/:wordId/definition/:defId", function (req, res, next)
     })
 });
 
+router.put("/dictionary/:wordId/definition/:defId", function (req, res, next) {
+    console.log(req.body);
+    var definition = req.body.definition
+    var wordId = req.params.wordId
+    var defId = req.params.defId
+    var sql = "UPDATE definition SET definition = ? WHERE wordid = ? AND defid = ?"
+    console.log(sql)
+    db.run(sql, [definition, wordId, defId], function (err) {
+        if (err) {
+            console.log(err)
+            res.status(500).send("Database Error" + err)
+        } 
+        
+        else {
+            if(this.changes == 1){
+                res.status(200).send("Definition updated.")
+            }
+            else{
+                res.status(404).send("Definition not found.")
+            }
+        }
+    })
+});
+
+router.get("/dictionary/:wordId", function (req, res, next) {
+    var word = res.wordData[0].word
+    res.wordData[0].twitter = {}
+    var twitSearch = "https://api.twitter.com/1.1/search/tweets.json?"
+    twitSearch += "q="
+    twitSearch +="lang%3Aen%20"
+    twitSearch += "q=%23" + word
+    twitSearch +="&result_type=recent"
+    twitClient.get(twitSearch, twitParams, function(error, tweets, response){
+        if (error){
+            console.error("Twitter fail:")
+            console.error(error)
+        }
+        else{
+            console.error("Twitter twits:");
+            console.log(tweets);
+            res.wordData[0].twitter.tweets = tweets;
+            
+        }
+        res.status(200).json(res.wordData);
+    })
+});
+    
+    
 
 
 module.exports = router;

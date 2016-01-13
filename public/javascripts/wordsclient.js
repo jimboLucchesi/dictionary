@@ -14,7 +14,9 @@ window.addEventListener("load", function () {
     var newDefinition = document.getElementById("newDefinition");
     var addUpdate = document.getElementById("addUpdate");
     var definitionList = document.getElementById("definitionList");
-
+    var twitterDiv = document.getElementById("twitterDiv");
+    var twitterHead = document.getElementById("twitterHead");
+    var twitterList = document.getElementById("twitterList");
 
     countField.addEventListener("keyup", function () {
         var abbrev = countField.value;
@@ -38,9 +40,24 @@ window.addEventListener("load", function () {
         xhr.responseType = 'json';
         xhr.send();
     });
+    
+    searchfield.addEventListener("keydown", function(evt) {
+        var firstWord = document.getElementById("firstWord");
+        if (firstWord){
+            switch (evt.keyCode){
+                case 40:
+                wordList.focus();
+                break;
+                }
+        }
+});
+
 
     searchfield.addEventListener("keyup", function () {
         messages.style.visibility = "hidden";
+        wordData.style.visibility = "hidden";
+
+
         var abbrev = searchField.value;
         if (abbrev.length <= 3) {
             return
@@ -75,6 +92,9 @@ window.addEventListener("load", function () {
                     opt.innerHTML = xhr.response[i].word;
 
                     wordList.appendChild(opt);
+                    if(i==0){
+                        opt.setAttribute("id", "firstWord");
+                    }
 
                 }
             }
@@ -211,16 +231,44 @@ window.addEventListener("load", function () {
                         definitionList.innerHTML ="";
                         var defs = xhr.response;
                         for (var i=0; i<defs.length; i++){
+                            var wordId = defs[i].wordid;
+                            var defId = defs[i].defid;
+                            var def = defs[i].definition;
                             var defContainer = document.createElement("div");
+                            var defDivId = wordId + ";" + defId;
+                            var defTextDivId = "text" + wordId + ";" + defId;
+                            defContainer.setAttribute("id", defDivId);
+                            
+                            
+                            var delButton = document.createElement("div");
+                            delButton.setAttribute("class", "defDelete");
+                            delButton.setAttribute("data-wordid", wordId);
+                            delButton.setAttribute("data-defid", defId);
+                            delButton.setAttribute("data-defdivid", defDivId);
+                            delButton.innerHTML = "x";
+                            delButton.addEventListener("click",delButtonHandler )
+                            defContainer.appendChild(delButton);
+                            
+                            var saveButton = document.createElement("div");
+                            saveButton.setAttribute("class", "defUpdate");
+                            saveButton.setAttribute("data-wordid", wordId);
+                            saveButton.setAttribute("data-defid", defId);
+                            saveButton.setAttribute("data-defdivid", defDivId);
+                            saveButton.setAttribute("data-deftextdivid", defTextDivId);
+                            saveButton.innerHTML = "SAVE";
+                            saveButton.addEventListener("click",saveDefButtonHandler )
+                            defContainer.appendChild(saveButton);
+                            
                             
                             var div = document.createElement("div");
                             div.setAttribute("class","definition");
-                            div.innerHTML = defs[i].definition;
+                            div.setAttribute("contenteditable","true");
+                            div.setAttribute("id", defTextDivId);
+
+                            div.innerHTML = defId + ";" + def;
                             defContainer.appendChild(div);                                             
-                            var delButton = document.createElement("div");
-                            delButton.setAttribute("class", "defDelete");
-                            delButton.innerHTML = "x";
-                            defContainer.appendChild(delButton);
+                            
+                            
                             
                             definitionList.appendChild(defContainer);
 
@@ -234,10 +282,87 @@ window.addEventListener("load", function () {
         xhr.send();
 }
 
+        
+        var delButtonHandler = function(evt){
+            console.log("Clicked Definition delete");
+            var wordId = evt.target.dataset.wordid;
+            var defId = evt.target.dataset.defid;
+            var defDivId = evt.target.dataset.defdivid;
+            var defDiv = document.getElementById(defDivId);
+            //console.log(wordId + ", " + defId);
+            console.log(defDiv); 
+            
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 204) {
+                    defDiv.parentNode.removeChild(defDiv);
+                }
+            }
+        }
+        xhr.open("DELETE", "/wordsapi/v1/dictionary/" + wordId + "/definition/" + defId);
+        xhr.send();
+}
 
+        var saveDefButtonHandler = function(evt){
+            console.log("Clicked Definition delete");
+            var wordId = evt.target.dataset.wordid;
+            var defId = evt.target.dataset.defid;
+            var defDivId = evt.target.dataset.defdivid;
+            
+            var defTextDivId = evt.target.dataset.deftextdivid;
+            var defTextDiv = document.getElementById(defTextDivId);
+
+            var body = {
+                wordid: wordId,
+                defid: defId,
+                definition: defTextDiv.innerHTML
+            };
+            
+            var bodyJSON = JSON.stringify(body);
+            console.log(body.definition); 
+            
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    messages.innerHTML = "Definition " + defId + "updated."   
+                    messages.style.visibility = "visible";
+                    defTextDiv.style.backgroundColor= "magenta";
+                    
+                }
+                else {
+                    messages.innerHTML = "ERROR: " + defId + "fail."   
+                    messages.style.visibility = "visible";
+                }
+            }
+        }
+        xhr.open("PUT", "/wordsapi/v1/dictionary/" + wordId + "/definition/" + defId);
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.send(bodyJSON);
+}
+        
+        
+        
+        
     var chooseWord = function (evt) {
         var word = wordList.options[wordList.selectedIndex].label;
         var wordId = wordList.options[wordList.selectedIndex].value;
+        definitionList.innerHTML = "";
+        
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    loadTwits(xhr.response[0].twitter)
+                }
+                
+            }
+        }
+        xhr.open("GET", "/wordsapi/v1/dictionary/" + wordId);
+        xhr.responseType ='json';
+        xhr.send();
         wordList.style.visibility = "hidden";
         wordList.setAttribute("size",0);
         searchfield.value = word;
@@ -253,4 +378,31 @@ window.addEventListener("load", function () {
     wordList.addEventListener("blur", chooseWord);
     wordList.addEventListener("click", chooseWord);
     
+    var loadTwits = function(twitter){
+            var statuses = twitter.tweets.statuses;
+            twitterHead.innerHTML = "Twitter search for: " + twitter.tweets.search_metadata.query;
+            twitterList.innerHTML = "";
+            for (var i=0; i < statuses.length; i++){
+                var text = statuses[i].text;
+                text = linkURLs(text);
+                text = linkHashTags(text);
+                var tweeter = statuses[i].user.screen_name;
+                tweeter = "<a href='https://twitter.com/"+tweeter+"' target='_blank'>@"+tweeter+"</a>:"
+                var tweet = document.createElement("li");
+                tweet.innerHTML = tweeter + text;
+                twitterList.appendChild(tweet);
+            }
+        }
+    var linkURLs = function(text){
+        var newText = text;
+        var pattern = /(https?:\/\/\S+)/g;
+        var newText = text.replace(pattern,"<a href='$1' target='_blank'>$1</a>");
+        return newText;
+    }
+    
+    var linkHashTags = function(text){
+        var pattern = /(#(\w+))/g;
+        var newText = text.replace(pattern,"<a href='https://twitter.com/search?q=%23$2' target='_blank'>$1</a>");
+        return newText;
+    }
 })
